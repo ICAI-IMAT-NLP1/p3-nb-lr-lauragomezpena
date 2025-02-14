@@ -42,7 +42,6 @@ class LogisticRegression:
     
             preds = self.sigmoid(features_and_column @ self.weights)
             loss = self.binary_cross_entropy_loss(preds, labels)
-            print(f"Epoch {epoch}: {loss}")
 
             gradient_weights = ((preds-labels).T @ features_and_column)/n # divido entre el número de documentos
 
@@ -122,8 +121,11 @@ class LogisticRegression:
         Returns:
             torch.Tensor: The sigmoid of z.
         """
-        result: torch.Tensor =  1 / (1 + torch.exp(-z))
+        result: torch.Tensor = 1 / (1 + torch.exp(-z))
+        result = result.clamp(min=1e-10, max=1 - 1e-10)  # Prevenir 0 o 1
         return result
+        # result: torch.Tensor =  1 / (1 + torch.exp(-z))
+        # return result
 
     @staticmethod
     def binary_cross_entropy_loss(
@@ -143,9 +145,15 @@ class LogisticRegression:
             torch.Tensor: The computed binary cross-entropy loss.
         """
         N = len(predictions)
+        epsilon = 1e-10  # Pequeño valor para evitar log(0)
+        predictions = predictions.clamp(min=epsilon, max=1 - epsilon)  # Clampeamos las predicciones para evitar 0 o 1
+        loss = (targets * torch.log(predictions) + (1 - targets) * torch.log(1 - predictions))
+        ce_loss: torch.Tensor = -1 * loss.sum() / N
+        return ce_loss
+        ''' N = len(predictions)
         loss = (targets * torch.log(predictions) + (1-targets) * torch.log(1-predictions))
         ce_loss: torch.Tensor = -1*loss.sum()/N
-        return ce_loss
+        return ce_loss'''
 
     @property
     def weights(self):

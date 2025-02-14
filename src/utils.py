@@ -90,6 +90,32 @@ def evaluate_classification(predictions: torch.Tensor, labels: torch.Tensor) -> 
     Returns:
         dict: A dictionary containing the calculated metrics.
     """
-    metrics: Dict[str, float] = None
+    import torch
+from typing import Dict
 
+def evaluate_classification(predictions: torch.Tensor, labels: torch.Tensor) -> Dict[str, float]:
+    """
+    Evaluate classification metrics including accuracy, precision, recall, and F1-score.
+
+    Args:
+        predictions (torch.Tensor): Predictions from the model (0 or 1).
+        labels (torch.Tensor): Actual ground truth labels (0 or 1).
+
+    Returns:
+        dict: A dictionary containing the calculated metrics.
+    """
+    TP = torch.sum((predictions == 1) & (labels == 1)).item()
+    TN = torch.sum((predictions == 0) & (labels == 0)).item()
+    FP = torch.sum((predictions == 1) & (labels == 0)).item()
+    FN = torch.sum((predictions == 0) & (labels == 1)).item()
+
+    accuracy = (TP + TN) / (TP + FP + FN + TN) if (TP + FP + FN + TN) > 0 else 0.0
+    precision = TP / (TP + FP) if (TP + FP) > 0 else 0.0
+    recall = TP / (TP + FN) if (TP + FN) > 0 else 0.0
+    f1_score = (2 * precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
+
+    metrics: Dict[str, float] = {"accuracy": accuracy, "precision": precision, "recall": recall, "f1_score": f1_score}
+
+    
+    
     return metrics
